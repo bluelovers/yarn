@@ -9,10 +9,11 @@
  */
 
 const fs = require('fs');
-const packageManifestFilename = process.argv[2];
+const path = require('path');
+const packageManifestFilename = process.argv[2] || path.join(__dirname, '..', 'dist/package.json');
 const packageManifest = require(packageManifestFilename);
 
-packageManifest.installationMethod = process.argv[3];
+packageManifest.installationMethod = process.argv[3] || 'tar';
 
 if (!packageManifest.installationMethod) {
   throw new Error('You need to specify an installation method.');
