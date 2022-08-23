@@ -31,6 +31,53 @@ export const IGNORE_MANIFEST_KEYS: Set<string> = new Set([
 // See https://github.com/yarnpkg/yarn/issues/2286.
 const IGNORE_CONFIG_KEYS = ['lastUpdateCheck'];
 
+const callbacks = new Set();
+let isCalled = false;
+let isRegistered = false;
+
+function exit(shouldManuallyExit, signal) {
+  if (isCalled) {
+    return;
+  }
+
+  isCalled = true;
+
+  for (const callback of callbacks) {
+    callback();
+  }
+
+  if (shouldManuallyExit === true) {
+    // eslint-disable-next-line no-process-exit
+    process.exit(128 + signal); // eslint-disable-line unicorn/no-process-exit
+  }
+}
+
+// eslint-disable-next-line flowtype/require-return-type
+export function exitHook(onExit) {
+  callbacks.add(onExit);
+
+  if (!isRegistered) {
+    isRegistered = true;
+
+    process.once('exit', exit);
+    process.once('SIGINT', exit.bind(undefined, true, 2));
+    process.once('SIGTERM', exit.bind(undefined, true, 15));
+
+    // PM2 Cluster shutdown message. Caught to support async handlers with pm2, needed because
+    // explicitly calling process.exit() doesn't trigger the beforeExit event, and the exit
+    // event cannot support async handlers, since the event loop is never called after it.
+    process.on('message', message => {
+      if (message === 'shutdown') {
+        exit(true, -128);
+      }
+    });
+  }
+
+  return () => {
+    callbacks.delete(onExit);
+  };
+}
+
 let wrappersFolder = null;
 
 export async function getWrappersFolder(config: Config): Promise<string> {
@@ -38,7 +85,7 @@ export async function getWrappersFolder(config: Config): Promise<string> {
     return wrappersFolder;
   }
 
-  wrappersFolder = await fs.makeTempDir();
+  wrappersFolder = await fs.makeTempDir(null, path.join(config._cacheRootFolder, '.yarn-wrapper'));
 
   await makePortableProxyScript(process.execPath, wrappersFolder, {
     proxyBasename: 'node',
@@ -47,6 +94,12 @@ export async function getWrappersFolder(config: Config): Promise<string> {
   await makePortableProxyScript(process.execPath, wrappersFolder, {
     proxyBasename: 'yarn',
     prependArguments: [process.argv[1]],
+  });
+
+  exitHook(() => {
+    try {
+      require('rimraf').sync(wrappersFolder);
+    } catch (e) {}
   });
 
   return wrappersFolder;
