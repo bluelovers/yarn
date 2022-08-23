@@ -22,6 +22,8 @@ if (!packageManifest.installationMethod) {
 delete packageManifest.dependencies;
 delete packageManifest.devDependencies;
 delete packageManifest.jest;
+delete packageManifest.config;
+delete packageManifest.resolutions;
 
 packageManifest.scripts = {
   preinstall: ':; (node ./preinstall.js > /dev/null 2>&1 || true)',

@@ -21,7 +21,9 @@ const __ROOT = join(__dirname, '..');
 	['bin/', 'bin/'],
 	['node_modules/v8-compile-cache/v8-compile-cache.js', 'lib/v8-compile-cache.js'],
 ].forEach(([file, new_target]) => {
-	copySync(join(__ROOT, file), join(__ROOT, `dist/${new_target || basename(file)}`), {
+	const target = `dist/${new_target || basename(file)}`;
+	console.log([file, `=>`, target])
+	copySync(join(__ROOT, file), join(__ROOT, target), {
 		preserveTimestamps: true,
 		overwrite: true,
 	});

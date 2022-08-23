@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="set-dev-version.js" type="NodeJSConfigurationType" nameIsGenerated="true" node-parameters="--require ts-node/register --enable-source-maps" path-to-js-file="set-dev-version.js" working-dir="$PROJECT_DIR$/scripts">
+    <EXTENSION ID="com.jetbrains.nodejs.run.NodeJSProfilingRunConfigurationExtension">
+      <profiling log-folder="C:\Users\User\AppData\Local\JetBrains\Toolbox\apps\WebStorm\ch-0\193.6015.20\jbr\bin\." />
+    </EXTENSION>
+    <method v="2" />
+  </configuration>
+</component>
